@@ -1,0 +1,12 @@
+# Modules
+node_modules/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Ignore built ts files
+bin/
+
+# ignore yarn.lock
+yarn.lock

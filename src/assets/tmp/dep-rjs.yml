@@ -1,0 +1,14 @@
+version: '1.0'
+servers:
+  main:
+    ssh:
+      user: web
+      host: '127.0.0.1'
+      path: '/var/www'
+    domain: 'company.com'
+    sub_domain: 'reactjs'
+
+setup:
+  path: 'src/environments/index.js'
+  tag: 'ENV_STAGE'
+  default: 'local'
