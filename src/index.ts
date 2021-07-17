@@ -33,7 +33,7 @@ program
   .argument('<env>', 'server to deploy (dev, stage, prod, etc.)')
   .description('deploy react project')
   .action((env) => {
-    main.deploy(env);
+    main.deploy(env).then(() => {});
   });
 
 program

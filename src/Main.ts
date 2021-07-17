@@ -14,7 +14,7 @@ export default class Main {
     this.logs = [];
   }
 
-  deploy(env: string): void {
+  async deploy(env: string): Promise<void> {
     const filePath = 'dep-r.yml';
     try {
       const config = this.appHelper.readYAML(filePath);
@@ -24,7 +24,7 @@ export default class Main {
       this.appHelper.logStatus('s', 'build');
       // Successfully deployed!
       let isCompress = false;
-      this.appHelper.compress('demo.txt', 'demo12.txt');
+      await this.appHelper.compress('demo.txt', 'demo12.txt');
       this.appHelper.logStatus('s', 'upload');
       this.appHelper.logStatus('s', 'deploy');
       console.log(chalk.blue('Successfully deployed!'));
@@ -42,7 +42,7 @@ export default class Main {
         this.logs.push(this.appHelper.alert(e.message, 'e'));
       } else if (e instanceof ArchiverException) {
         this.appHelper.logStatus('s', 'build');
-      }else {
+      } else {
         console.log(e);
         this.logs.push(e.message);
       }

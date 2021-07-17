@@ -146,8 +146,7 @@ export default class AppHelper {
     return message
   }
 
-  compress(file: string, name: string): void {
-    const self = this;
+  async compress(file: string, name: string): Promise<void> {
     const output = fs.createWriteStream('example.tar.gz');
     const archive = archiver('tar', {
       gzip: true,
@@ -156,21 +155,29 @@ export default class AppHelper {
       }
     });
 
-    output.on('close', function() {
-      self.logs.push(archive.pointer() + ' total bytes.');
-      self.logs.push('archiver has been finalized and the output file  has closed.');
-      self.logStatus('s', 'compress');
-    });
-
-    archive.on('error', function(e) {
-      self.logs.push(e.message);
-      self.logStatus('e', 'compress');
-      throw new ArchiverException(self.getError(e));
-    });
-
     archive.pipe(output);
     archive.append(fs.createReadStream(file), { name });
-    archive.finalize().then(() => {});
+    await archive.finalize();
+    await this.compressCheckListeners(archive, output);
+    // console.log(archive.pointer() + ' total bytes.');
+  }
+
+  async compressCheckListeners(archive: archiver.Archiver, output: fs.WriteStream): Promise<boolean> {
+    const self = this;
+    return new Promise((resolve,reject) => {
+      output.on('close', function() {
+        self.logs.push(archive.pointer() + ' total bytes.');
+        self.logs.push('archiver has been finalized and the output file  has closed.');
+        self.logStatus('s', 'compress');
+        resolve(true);
+      });
+
+      archive.on('error', function(e) {
+        self.logs.push(e.message);
+        self.logStatus('e', 'compress');
+        reject(new ArchiverException(self.getError(e)));
+      });
+    });
   }
 
   logStatus(status: string, message: string): void {

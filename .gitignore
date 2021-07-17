@@ -11,3 +11,6 @@ bin/
 
 # ignore yarn.lock
 yarn.lock
+
+# dev files
+example.tar.gz
