@@ -8,9 +8,16 @@ Thumbs.db
 
 # Ignore built ts files
 bin/
+!bin/.gitkeep
+
+# Deploy
+build
+!build/.gitkeep
 
 # ignore yarn.lock
 yarn.lock
 
 # dev files
 example.tar.gz
+env.js
+dep-r.yml

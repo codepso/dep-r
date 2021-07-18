@@ -1,53 +1,112 @@
-import { Service } from 'typedi';
+import { Service, Inject } from 'typedi';
 import AppHelper from './helpers/AppHelper';
 import {ArchiverException, ConfigException, FileException} from './exceptions';
 import chalk from 'chalk';
 import pkg from 'lodash';
+import fs from 'fs-extra';
 import {YAMLParseError, YAMLWarning} from 'yaml';
+import ArchiverHelper from './helpers/ArchiverHelper';
 const { get: _get, head: _head, has: _has, merge: _merge, set: _set } = pkg;
 
 @Service()
 export default class Main {
-  logs: string[];
 
-  constructor(public appHelper: AppHelper) {
-    this.logs = [];
+  @Inject()
+  appHelper!: AppHelper;
+
+  @Inject()
+  archiverHelper!: ArchiverHelper;
+
+  private _env: string = '';
+
+  private _verbose: boolean = false;
+
+  set env(value: string) {
+    this._env = value;
   }
 
-  async deploy(env: string): Promise<void> {
-    const filePath = 'dep-r.yml';
+  set verbose(value: boolean) {
+    this._verbose = value;
+  }
+
+  async init() {
+    const file1 = 'dep-r.yml';
+    const file2 = 'env.js';
+
     try {
+      const rootPath = await this.appHelper.getRootPath(this._env);
+
+      if (!fs.pathExistsSync(file1)) {
+        fs.copySync(rootPath + 'assets/init/dep-r.yml',  file1);
+        this.appHelper.logs.push(chalk.yellow(file1) + ' has been created');
+      } else {
+        this.appHelper.logs.push(chalk.yellow(file1) + ' hasn\'t been copied because it exists');
+      }
+
+      if (!fs.pathExistsSync(file2)) {
+        fs.copySync(rootPath + 'assets/init/env.js',  file2);
+        this.appHelper.logs.push(chalk.yellow(file2) + ' has been created');
+      } else {
+        this.appHelper.logs.push(chalk.yellow(file2) + ' hasn\'t been copied because it exists');
+      }
+
+      this.appHelper.checkList('s', 'init');
+
+      if (this._verbose) {
+        this.appHelper.renderLogs();
+      }
+
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        this.appHelper.logs.push(e.message);
+      }
+
+      this.appHelper.renderLogs();
+    }
+  }
+
+  async deploy(stage: string): Promise<void> {
+    const filePath = 'dep-r.yml';
+    console.log('v ', this._verbose);
+    try {
+
+      // Config
       const config = this.appHelper.readYAML(filePath);
-      this.appHelper.logStatus('s', 'config');
-      const setup = this.getSetup(config, env);
-      this.appHelper.logStatus('s', 'setup');
-      this.appHelper.logStatus('s', 'build');
-      // Successfully deployed!
-      let isCompress = false;
-      await this.appHelper.compress('demo.txt', 'demo12.txt');
-      this.appHelper.logStatus('s', 'upload');
-      this.appHelper.logStatus('s', 'deploy');
+      this.appHelper.logs.push(chalk.yellow(filePath) + ' found');
+      this.appHelper.checkList('s', 'config');
+
+      // Setup
+      const setup = this.getSetup(config, stage);
+      this.appHelper.logs.push('get credentials from ' + stage + ' server');
+      this.appHelper.checkList('s', 'setup');
+
+      // Build
+      this.appHelper.checkList('s', 'build');
+      await this.archiverHelper.compress('demo.txt', 'demo12.txt');
+      this.appHelper.checkList('s', 'upload');
+      this.appHelper.checkList('s', 'deploy');
       console.log(chalk.blue('Successfully deployed!'));
 
-      // console.log(setup);
+      if (this._verbose) {
+        this.appHelper.renderLogs();
+      }
     } catch (e) {
       if (e instanceof FileException) {
-        this.logs.push(e.message);
-        this.logs.push(this.appHelper.alert('Use ' + chalk.green('init') + ' command', 'i'));
+        this.appHelper.logs.push(e.message);
+        this.appHelper.logs.push(this.appHelper.alert('Use ' + chalk.green('init') + ' command', 'i'));
       } else if (e instanceof YAMLParseError || e instanceof YAMLWarning) {
         const line = _get(_head(e.linePos), 'line');
         const infoLine = line === undefined ? '' : ', line ' + chalk.green(line);
-        this.logs.push(this.appHelper.alert('Syntax error in ' + filePath + infoLine, 'e'));
+        this.appHelper.logs.push(this.appHelper.alert('Syntax error in ' + filePath + infoLine, 'e'));
       } else if (e instanceof ConfigException) {
-        this.logs.push(this.appHelper.alert(e.message, 'e'));
+        this.appHelper.logs.push(this.appHelper.alert(e.message, 'e'));
       } else if (e instanceof ArchiverException) {
-        this.appHelper.logStatus('s', 'build');
+        this.appHelper.checkList('s', 'build');
       } else {
-        console.log(e);
-        this.logs.push(e.message);
+        this.appHelper.logs.push(e.message);
       }
 
-      this.appHelper.render(this.logs);
+      this.appHelper.renderLogs();
     }
   }
 

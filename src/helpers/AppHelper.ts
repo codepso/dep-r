@@ -4,26 +4,17 @@ import chalk from 'chalk';
 import pkg from 'lodash';
 import fs from 'fs';
 import YAML from 'yaml';
-import {ArchiverException, FileException} from '../exceptions';
-import archiver from 'archiver';
-import logSymbols from 'log-symbols';
+import util from 'util';
+import { exec } from 'child_process'
+import {FileException} from '../exceptions';
+import Helper from './Helper';
 
 const { has: _has, pick: _pick, get: _get, replace: _replace, isArray: _isArray } = pkg;
 
 @Service()
-export default class AppHelper {
+export default class AppHelper extends Helper {
 
-  logs: string[];
-
-  constructor() {
-    this.logs = [];
-  }
-
-  throwException = (message: string) => {
-    throw {message};
-  };
-
-  readYAML = (filePath: string): any => {
+  readYAML(filePath: string): any  {
     try {
       const file = fs.readFileSync(filePath, 'utf8');
       return YAML.parse(file);
@@ -33,6 +24,13 @@ export default class AppHelper {
       }
       throw e;
     }
+  }
+
+  async getRootPath(env: string): Promise<string> {
+    const shell = util.promisify(exec);
+    const {stdout} = await shell('npm root -g');
+    const globalPath = stdout.replace(/\n$/, '') + '/@codepso/rn-rad/';
+    return (env === 'prod') ? globalPath : './src/';
   }
 
   checkPackages = async (requiredPackages: Map<string, string>, continueFlow: boolean = false) => {
@@ -105,33 +103,7 @@ export default class AppHelper {
     }
   }
 
-  getError = (error: any, params: any = {}): string => {
-    let message = 'There was an unknown error';
-    if (typeof error === 'string') {
-      message = error;
-    }
-    if (_has(error, 'message')) {
-      message = error.message;
-    }
-    if (_has(error, 'code')) {
-      switch (error.code) {
-        case 'ENOENT':
-          const action = _has(error, 'syscall') ? error.syscall + ' ' : '';
-          if (_has(error, 'path')) {
-            message = 'No such file or directory ' + action + chalk.yellow(error.path);
-          }
-          break;
-      }
-    }
-
-    if (_has(params, 'clean')) {
-      return message;
-    } else {
-      return chalk.red('E: ') +  message;
-    }
-  }
-
-  alert(message: string, type: string): string {
+  alert(message: string, type: string, render: boolean = false): string {
     switch (type) {
       case 'info':
       case 'i':
@@ -141,50 +113,27 @@ export default class AppHelper {
       case 'e':
         message = chalk.yellow('E: ') + message;
         break;
+      case 'note':
+      case 'n':
+        message = chalk.blue('Note: ') + message;
+        break;
     }
 
-    return message
-  }
-
-  async compress(file: string, name: string): Promise<void> {
-    const output = fs.createWriteStream('example.tar.gz');
-    const archive = archiver('tar', {
-      gzip: true,
-      gzipOptions: {
-        level: 1
-      }
-    });
-
-    archive.pipe(output);
-    archive.append(fs.createReadStream(file), { name });
-    await archive.finalize();
-    await this.compressCheckListeners(archive, output);
-    // console.log(archive.pointer() + ' total bytes.');
-  }
-
-  async compressCheckListeners(archive: archiver.Archiver, output: fs.WriteStream): Promise<boolean> {
-    const self = this;
-    return new Promise((resolve,reject) => {
-      output.on('close', function() {
-        self.logs.push(archive.pointer() + ' total bytes.');
-        self.logs.push('archiver has been finalized and the output file  has closed.');
-        self.logStatus('s', 'compress');
-        resolve(true);
-      });
-
-      archive.on('error', function(e) {
-        self.logs.push(e.message);
-        self.logStatus('e', 'compress');
-        reject(new ArchiverException(self.getError(e)));
-      });
-    });
-  }
-
-  logStatus(status: string, message: string): void {
-    switch (status) {
-      case 'success':
-      case 's':
-        console.log(logSymbols.success, 'Executing task ' + chalk.blue(message));
+    if (render) {
+      console.log(message);
     }
+    return message;
+  }
+
+  renderLogs() {
+    console.log('');
+    console.log('Logs');
+    console.log('----');
+    this.render(this.logs);
+  }
+
+  getFilenameToCompress(setup: object): string {
+
+    return '';
   }
 }

@@ -1,13 +1,19 @@
 #!/usr/bin/env node
 import 'reflect-metadata';
 
+import { config } from 'dotenv';
 import { Container } from 'typedi';
 import { Command } from 'commander';
 import Main from './Main';
-const program = new Command();
+import pkg from 'lodash';
 
-//const main = new Main();
+const { get: _get} = pkg;
+const program = new Command();
+config();
+
+const env: string = process.env.APP_ENV ?? 'dev';
 const main = Container.get(Main);
+main.env = env;
 
 /*import AppHelper from './helper/AppHelper';
 
@@ -30,10 +36,12 @@ program.version('0.0.1');
 
 program
   .command('deploy')
-  .argument('<env>', 'server to deploy (dev, stage, prod, etc.)')
+  .argument('<stage>', 'server to deploy (dev, stage, prod, etc.)')
+  .option('-v, --verbose', 'output extra logs')
   .description('deploy react project')
-  .action((env) => {
-    main.deploy(env).then(() => {});
+  .action((stage, options) => {
+    console.log(options);
+    main.deploy(stage).then(() => {});
   });
 
 program
@@ -46,8 +54,10 @@ program
 program
   .command('init')
   .description('build reactjs project')
-  .action(() => {
-    console.log('build');
+  .option('-v, --verbose', 'output extra logs')
+  .action((options) => {
+    main.verbose = _get(options, 'verbose', false);
+    main.init().then(() => {});
   });
 
 program.parse();
