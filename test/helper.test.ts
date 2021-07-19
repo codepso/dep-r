@@ -1,8 +1,9 @@
 import AppHelper from '../src/helpers/AppHelper';
 import {Container} from 'typedi';
 const appHelper = Container.get(AppHelper);
+// const appHelper = new AppHelper();
 
-it('check packages as boolean', async () => {
+/*it('check packages as boolean', async () => {
   const requiredPackages = new Map([['react-native', '0.61.1'], ['react', '16.9.0']]);
   //const appHelper = new AppHelper();
   const result = await appHelper.checkPackages(requiredPackages, true);
@@ -36,4 +37,4 @@ it('get filename to compress with subdomain', () => {
   const filename = appHelper.getFilenameToCompress(setup);
   console.log(filename);
   expect(filename).toBe('');
-});
+});*/

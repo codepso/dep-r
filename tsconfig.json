@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "lib": ["ES6", "ES2015", "ESNext"],
+    "lib": ["es6", "es2015", "esnext"],
     "outDir": "bin",
     "rootDir": "src",
     "strict": true,
