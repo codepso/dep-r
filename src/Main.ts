@@ -6,6 +6,7 @@ import pkg from 'lodash';
 import fs from 'fs-extra';
 import {YAMLParseError, YAMLWarning} from 'yaml';
 import ArchiverHelper from './helpers/ArchiverHelper';
+import {set} from 'yaml/dist/schema/yaml-1.1/set';
 const { get: _get, head: _head, has: _has, merge: _merge, set: _set } = pkg;
 
 @Service()
@@ -67,16 +68,15 @@ export default class Main {
 
   async deploy(stage: string): Promise<void> {
     const filePath = 'dep-r.yml';
-    console.log('v ', this._verbose);
     try {
 
       // Config
       const config = this.appHelper.readYAML(filePath);
-      this.appHelper.logs.push(chalk.yellow(filePath) + ' found');
+      this.appHelper.logs.push('File ' + chalk.yellow(filePath) + ' found');
       this.appHelper.checkList('s', 'config');
-
       // Setup
       const setup = this.getSetup(config, stage);
+      console.log(setup);
       this.appHelper.logs.push('get credentials from ' + stage + ' server');
       this.appHelper.checkList('s', 'setup');
 
@@ -93,13 +93,13 @@ export default class Main {
     } catch (e) {
       if (e instanceof FileException) {
         this.appHelper.logs.push(e.message);
-        this.appHelper.logs.push(this.appHelper.alert('Use ' + chalk.green('init') + ' command', 'i'));
+        this.appHelper.logs.push('use ' + chalk.green('init') + ' command');
       } else if (e instanceof YAMLParseError || e instanceof YAMLWarning) {
         const line = _get(_head(e.linePos), 'line');
         const infoLine = line === undefined ? '' : ', line ' + chalk.green(line);
-        this.appHelper.logs.push(this.appHelper.alert('Syntax error in ' + filePath + infoLine, 'e'));
+        this.appHelper.logs.push('syntax error in ' + filePath + infoLine);
       } else if (e instanceof ConfigException) {
-        this.appHelper.logs.push(this.appHelper.alert(e.message, 'e'));
+        this.appHelper.logs.push(e.message);
       } else if (e instanceof ArchiverException) {
         this.appHelper.checkList('s', 'build');
       } else {

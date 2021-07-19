@@ -40,7 +40,6 @@ program
   .option('-v, --verbose', 'output extra logs')
   .description('deploy react project')
   .action((stage, options) => {
-    console.log(options);
     main.deploy(stage).then(() => {});
   });
 

@@ -107,11 +107,11 @@ export default class AppHelper extends Helper {
     switch (type) {
       case 'info':
       case 'i':
-        message = chalk.yellow('I: ') + message;
+        message = chalk.yellow('Info: ') + message;
         break;
       case 'error':
       case 'e':
-        message = chalk.yellow('E: ') + message;
+        message = chalk.red('Error: ') + message;
         break;
       case 'note':
       case 'n':
@@ -133,7 +133,7 @@ export default class AppHelper extends Helper {
   }
 
   getFilenameToCompress(setup: object): string {
-
+    console.log(setup);
     return '';
   }
 }
