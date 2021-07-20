@@ -6,7 +6,6 @@ import pkg from 'lodash';
 import fs from 'fs-extra';
 import {YAMLParseError, YAMLWarning} from 'yaml';
 import ArchiverHelper from './helpers/ArchiverHelper';
-import {set} from 'yaml/dist/schema/yaml-1.1/set';
 const { get: _get, head: _head, has: _has, merge: _merge, set: _set } = pkg;
 
 @Service()
@@ -81,15 +80,18 @@ export default class Main {
       step = 'setup';
       const setup = this.getSetup(config, stage);
       this.appHelper.logs.push('Get credentials from ' + chalk.yellow(stage) + ' server');
-      const folder = this.appHelper.getFolder(setup);
+      // const folder = this.appHelper.getFolder(setup);
       this.appHelper.checkList('s', 'setup');
 
-      /*// Build
+      // Build
       step = 'build';
       this.appHelper.checkList('s', 'build');
 
       // Compress
-      await this.archiverHelper.compress('demo.txt', 'demo12.txt');
+      const compress = _get(setup, 'compress', false);
+      if (compress) {
+        await this.archiverHelper.compress('demo.txt', 'demo12.txt');
+      }
 
       // Upload
       step = 'upload';
@@ -98,7 +100,7 @@ export default class Main {
       // Deploy
       step = 'deploy';
       this.appHelper.checkList('s', 'deploy');
-      console.log(chalk.blue('Successfully deployed!'));*/
+      console.log(chalk.blue('Successfully deployed!'));
 
       if (this._verbose) {
         this.appHelper.renderLogs();
