@@ -20,6 +20,11 @@ export default class Helper {
       case 'success':
       case 's':
         console.log(logSymbols.success, 'Task executed ' + chalk.blue(message));
+        break;
+      case 'error':
+      case 'e':
+        console.log(logSymbols.error, 'Task executed ' + chalk.blue(message));
+        break;
     }
   }
 
@@ -42,10 +47,12 @@ export default class Helper {
       }
     }
 
-    if (_has(params, 'clean')) {
+    /*if (_has(params, 'clean')) {
       return message;
     } else {
       return chalk.red('E: ') +  message;
-    }
+    }*/
+
+    return message;
   }
 }

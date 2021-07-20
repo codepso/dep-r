@@ -1,14 +1,18 @@
-version: '1.0'
+version: "1.0"
+app:
+  name: "my_company"
+  folder: "public_html"
+  compress: true
+
 servers:
   main:
-    ssh:
-      user: web
-      host: '127.0.0.1'
-      path: '/var/www'
-    domain: 'company.com'
-    sub_domain: 'reactjs'
+    user: web
+    host: "127.0.0.1"
+    path: "/var/www"
+
+  dev: true
 
 setup:
-  path: 'src/environments/index.js'
-  tag: 'ENV_STAGE'
-  default: 'local'
+  path: "src/environments/index.js"
+  tag: "ENV_STAGE"
+  default: "local"

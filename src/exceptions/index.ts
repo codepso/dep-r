@@ -1,6 +1,7 @@
 export class FileException extends Error {
-  constructor(message: string) {
+  constructor(message: string, name: string = '') {
     super(message);
+    this.name = name;
     Object.setPrototypeOf(this, FileException.prototype)
   }
 }

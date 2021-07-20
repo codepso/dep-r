@@ -20,7 +20,7 @@ export default class AppHelper extends Helper {
       return YAML.parse(file);
     } catch (e) {
       if (e.code === 'ENOENT') {
-        throw new FileException(this.getError(e));
+        throw new FileException(this.getError(e), 'yaml');
       }
       throw e;
     }
@@ -132,8 +132,16 @@ export default class AppHelper extends Helper {
     this.render(this.logs);
   }
 
-  getFilenameToCompress(setup: object): string {
-    console.log(setup);
-    return '';
+  getFolder(setup: object): string {
+    try {
+      const folder = _get(setup, 'folder');
+      if (folder === undefined) {
+        this.throwException('Attribute: ' + chalk.yellow('folder') + ', not found');
+      }
+
+      return folder;
+    } catch (e) {
+      throw new FileException(this.getError(e));
+    }
   }
 }

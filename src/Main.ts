@@ -68,32 +68,49 @@ export default class Main {
 
   async deploy(stage: string): Promise<void> {
     const filePath = 'dep-r.yml';
+    let step = '';
     try {
 
       // Config
+      step = 'config';
       const config = this.appHelper.readYAML(filePath);
       this.appHelper.logs.push('File ' + chalk.yellow(filePath) + ' found');
       this.appHelper.checkList('s', 'config');
+
       // Setup
+      step = 'setup';
       const setup = this.getSetup(config, stage);
-      console.log(setup);
-      this.appHelper.logs.push('get credentials from ' + stage + ' server');
+      this.appHelper.logs.push('Get credentials from ' + chalk.yellow(stage) + ' server');
+      const folder = this.appHelper.getFolder(setup);
       this.appHelper.checkList('s', 'setup');
 
-      // Build
+      /*// Build
+      step = 'build';
       this.appHelper.checkList('s', 'build');
+
+      // Compress
       await this.archiverHelper.compress('demo.txt', 'demo12.txt');
+
+      // Upload
+      step = 'upload';
       this.appHelper.checkList('s', 'upload');
+
+      // Deploy
+      step = 'deploy';
       this.appHelper.checkList('s', 'deploy');
-      console.log(chalk.blue('Successfully deployed!'));
+      console.log(chalk.blue('Successfully deployed!'));*/
 
       if (this._verbose) {
         this.appHelper.renderLogs();
       }
     } catch (e) {
+      this.appHelper.checkList('e', step);
       if (e instanceof FileException) {
         this.appHelper.logs.push(e.message);
-        this.appHelper.logs.push('use ' + chalk.green('init') + ' command');
+        const name = _get(e, 'name');
+        if (name !== undefined && name === 'yaml') {
+          this.appHelper.logs.push('use ' + chalk.green('init') + ' command');
+        }
       } else if (e instanceof YAMLParseError || e instanceof YAMLWarning) {
         const line = _get(_head(e.linePos), 'line');
         const infoLine = line === undefined ? '' : ', line ' + chalk.green(line);
